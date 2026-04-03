@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   FoodEntry,
   DailyGoals,
@@ -49,7 +51,9 @@ interface AppState {
 
 const todayStr = new Date().toISOString().split('T')[0];
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>()(
+  persist(
+    (set, get) => ({
   selectedDate: todayStr,
   entries: mockEntries,
   goals: {
@@ -164,4 +168,19 @@ export const useStore = create<AppState>((set, get) => ({
       macros,
     };
   },
-}));
+    }),
+    {
+      name: 'nutrivio-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        entries: state.entries,
+        goals: state.goals,
+        weightEntries: state.weightEntries,
+        weightGoal: state.weightGoal,
+        reminders: state.reminders,
+        water: state.water,
+        settings: state.settings,
+      }),
+    }
+  )
+);
