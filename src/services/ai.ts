@@ -6,30 +6,31 @@ import { NutritionDetail } from '../types';
 // 2. Manual call to setGoogleAIKey() from Settings screen
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Try multiple sources for the API key
-let _apiKey: string | null = (() => {
-  // 1. Window global (injected by build script for web)
+let _manualKey: string | null = null;
+
+function resolveKey(): string | null {
+  if (_manualKey) return _manualKey;
   if (typeof window !== 'undefined' && (window as any).__NUTRIVIO_AI_KEY__) {
     return (window as any).__NUTRIVIO_AI_KEY__;
   }
-  // 2. Expo env var
   try {
     // @ts-ignore
     if (process.env.EXPO_PUBLIC_GOOGLE_AI_KEY) return process.env.EXPO_PUBLIC_GOOGLE_AI_KEY;
   } catch {}
   return null;
-})();
+}
 
 export function setGoogleAIKey(key: string) {
-  _apiKey = key;
+  _manualKey = key;
 }
 
 export function getGoogleAIKey(): string | null {
-  return _apiKey;
+  return resolveKey();
 }
 
 export function isAIConfigured(): boolean {
-  return _apiKey !== null && _apiKey.length > 0;
+  const key = resolveKey();
+  return key !== null && key.length > 0;
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -110,12 +111,13 @@ async function callGoogleAI(
   imageBase64?: string,
   imageMimeType?: string
 ): Promise<string> {
-  if (!_apiKey) {
+  const apiKey = resolveKey();
+  if (!apiKey) {
     throw new Error('Google AI API key not configured.');
   }
 
   const model = 'gemini-2.0-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${_apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const parts: Array<Record<string, unknown>> = [];
 
