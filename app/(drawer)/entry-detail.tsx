@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { PlatformIonicons as Ionicons } from '../../src/components/PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';
 import { AppHeader, ProgressBar } from '../../src/components';

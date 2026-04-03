@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PlatformIonicons as Ionicons } from './PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '../theme';
 
@@ -8,9 +8,9 @@ interface AppHeaderProps {
   title: string;
   onMenuPress?: () => void;
   onBackPress?: () => void;
-  rightIcon?: string;
+  rightIcon?: string; // Ionicons name
   onRightPress?: () => void;
-  rightIcon2?: string;
+  rightIcon2?: string; // Ionicons name
   onRight2Press?: () => void;
 }
 
@@ -45,12 +45,12 @@ export function AppHeader({
       <View style={styles.right}>
         {rightIcon2 && (
           <TouchableOpacity onPress={onRight2Press} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name={rightIcon2} size={22} color={colors.text.primary} />
+            <Ionicons name={rightIcon2 as any} size={22} color={colors.text.primary} />
           </TouchableOpacity>
         )}
         {rightIcon && (
           <TouchableOpacity onPress={onRightPress} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name={rightIcon} size={22} color={colors.text.primary} />
+            <Ionicons name={rightIcon as any} size={22} color={colors.text.primary} />
           </TouchableOpacity>
         )}
       </View>

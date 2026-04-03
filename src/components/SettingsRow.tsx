@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PlatformIonicons as Ionicons } from './PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../theme';
 
 interface SettingsRowProps {
-  icon?: string;
+  icon?: string; // Ionicons name
   label: string;
   value?: string;
   onPress?: () => void;
@@ -31,7 +31,7 @@ export function SettingsRow({
         {icon && (
           <View style={styles.iconContainer}>
             <Ionicons
-              name={icon}
+              name={icon as any}
               size={20}
               color={danger ? colors.semantic.error : colors.text.secondary}
             />

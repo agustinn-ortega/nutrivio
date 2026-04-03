@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { PlatformIonicons as Ionicons } from '../../src/components/PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { AppHeader, Button } from '../../src/components';
 
 interface FeatureItemProps {
-  icon: string;
+  icon: string; // Ionicons name
   title: string;
   subtitle: string;
 }
@@ -15,7 +15,7 @@ function FeatureItem({ icon, title, subtitle }: FeatureItemProps) {
   return (
     <View style={styles.featureItem}>
       <View style={styles.featureIconWrap}>
-        <Ionicons name={icon} size={22} color={colors.accent.primary} />
+        <Ionicons name={icon as any} size={22} color={colors.accent.primary} />
       </View>
       <View style={styles.featureText}>
         <Text style={styles.featureTitle}>{title}</Text>

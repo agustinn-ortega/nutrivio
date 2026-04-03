@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { PlatformIonicons as Ionicons } from './PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../theme';
 import { FoodEntry } from '../types';
 import { ProgressBar } from './ProgressBar';

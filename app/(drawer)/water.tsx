@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { PlatformIonicons as Ionicons } from '../../src/components/PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';

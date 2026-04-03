@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { PlatformIonicons as Ionicons } from './PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../theme';
 
 interface EmptyStateProps {
-  icon?: string;
+  icon?: string; // Ionicons name
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
@@ -14,7 +14,7 @@ export function EmptyState({ icon = 'nutrition-outline', title, subtitle, action
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={48} color={colors.text.tertiary} />
+        <Ionicons name={icon as any} size={48} color={colors.text.tertiary} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}

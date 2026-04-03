@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PlatformIonicons as Ionicons } from '../../src/components/PlatformIcon';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';
 
@@ -25,7 +25,7 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 
 interface DrawerItem {
   label: string;
-  icon: string;
+  icon: string; // Ionicons name
   route: string;
 }
 
@@ -119,7 +119,7 @@ function DrawerOverlay() {
         activeOpacity={0.7}
       >
         <Ionicons
-          name={active ? (item.icon.replace('-outline', '') as string) : item.icon}
+          name={(active ? item.icon.replace('-outline', '') : item.icon) as any}
           size={22}
           color={active ? colors.accent.primary : colors.text.secondary}
           style={styles.menuIcon}
