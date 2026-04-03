@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { PlatformIonicons as Ionicons } from './PlatformIcon';
 import { colors, spacing, typography } from '../theme';
 
 interface SettingsRowProps {
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: string;
   label: string;
   value?: string;
   onPress?: () => void;

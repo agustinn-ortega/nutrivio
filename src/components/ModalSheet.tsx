@@ -50,7 +50,7 @@ interface ActionSheetProps {
 }
 
 export function ActionSheet({ visible, onClose, items }: ActionSheetProps) {
-  const Ionicons = require('@expo/vector-icons').Ionicons;
+  const { PlatformIonicons: Ionicons } = require('./PlatformIcon');
   return (
     <ModalSheet visible={visible} onClose={onClose}>
       {items.map((item, i) => (

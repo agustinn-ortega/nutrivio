@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { PlatformIonicons as Ionicons } from './PlatformIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '../theme';
 
@@ -8,9 +8,9 @@ interface AppHeaderProps {
   title: string;
   onMenuPress?: () => void;
   onBackPress?: () => void;
-  rightIcon?: keyof typeof Ionicons.glyphMap;
+  rightIcon?: string;
   onRightPress?: () => void;
-  rightIcon2?: keyof typeof Ionicons.glyphMap;
+  rightIcon2?: string;
   onRight2Press?: () => void;
 }
 

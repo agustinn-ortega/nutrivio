@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { PlatformIonicons as Ionicons } from '../../src/components/PlatformIcon';
 import { useRouter } from 'expo-router';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { AppHeader, Button } from '../../src/components';
 
 interface FeatureItemProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   title: string;
   subtitle: string;
 }

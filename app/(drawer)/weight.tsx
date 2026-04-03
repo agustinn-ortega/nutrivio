@@ -8,7 +8,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { PlatformIonicons as Ionicons } from '../../src/components/PlatformIcon';
 import { useRouter } from 'expo-router';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';
