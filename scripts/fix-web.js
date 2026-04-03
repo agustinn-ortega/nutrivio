@@ -3,9 +3,17 @@ const path = require('path');
 
 const distDir = path.join(__dirname, '..', 'dist');
 
-// 1. Fix script tag: defer -> type="module"
+// 1. Fix script tag: defer -> type="module" and inject env vars as globals
 let html = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
 html = html.replace(' defer></script>', ' type="module"></script>');
+
+// Inject EXPO_PUBLIC env vars as window globals
+const apiKey = process.env.EXPO_PUBLIC_GOOGLE_AI_KEY || '';
+if (apiKey) {
+  const envScript = `<script>window.__NUTRIVIO_AI_KEY__="${apiKey}";</script>`;
+  html = html.replace('<div id="root"></div>', `<div id="root"></div>\n  ${envScript}`);
+  console.log('✓ Injected Google AI API key into HTML');
+}
 
 // 2. Inject @font-face with BASE64-embedded fonts (avoids MIME type issues on Vercel)
 const srcFontsDir = path.join(__dirname, '..', 'node_modules', '@expo', 'vector-icons', 'build', 'vendor', 'react-native-vector-icons', 'Fonts');

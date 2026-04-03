@@ -6,8 +6,19 @@ import { NutritionDetail } from '../types';
 // 2. Manual call to setGoogleAIKey() from Settings screen
 // ──────────────────────────────────────────────────────────────────────────────
 
-let _apiKey: string | null =
-  (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_GOOGLE_AI_KEY) || null;
+// Try multiple sources for the API key
+let _apiKey: string | null = (() => {
+  // 1. Window global (injected by build script for web)
+  if (typeof window !== 'undefined' && (window as any).__NUTRIVIO_AI_KEY__) {
+    return (window as any).__NUTRIVIO_AI_KEY__;
+  }
+  // 2. Expo env var
+  try {
+    // @ts-ignore
+    if (process.env.EXPO_PUBLIC_GOOGLE_AI_KEY) return process.env.EXPO_PUBLIC_GOOGLE_AI_KEY;
+  } catch {}
+  return null;
+})();
 
 export function setGoogleAIKey(key: string) {
   _apiKey = key;
@@ -238,6 +249,11 @@ const LOCAL_DB: Record<string, Omit<AIFoodResult, 'description'>> = {
   manzana: { title: 'Manzana', amount: '1 mediana', calories: 95, macros: { carbs: 25, protein: 0, fat: 0 }, type: 'food', healthAnalysis: 'Rica en fibra y antioxidantes. Excelente snack natural.' },
   tostada: { title: 'Tostadas con queso', amount: '2 unidades', calories: 220, macros: { carbs: 24, protein: 10, fat: 9 }, type: 'food', healthAnalysis: 'Combinacion de carbohidratos y proteina. Moderado en grasas.' },
   gimnasio: { title: 'Entrenamiento en gimnasio', amount: '60 min', calories: 350, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Excelente para fuerza muscular y salud cardiovascular.' },
+  gym: { title: 'Entrenamiento en gimnasio', amount: '60 min', calories: 350, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Excelente para fuerza muscular y salud cardiovascular.' },
+  pesas: { title: 'Entrenamiento con pesas', amount: '45 min', calories: 300, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Fortalece musculos y mejora la densidad osea.' },
+  crossfit: { title: 'CrossFit', amount: '45 min', calories: 400, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Entrenamiento de alta intensidad. Quema muchas calorias.' },
+  futbol: { title: 'Futbol', amount: '60 min', calories: 400, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Excelente cardio y trabajo de piernas.' },
+  basquet: { title: 'Basquet', amount: '45 min', calories: 350, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Gran ejercicio cardiovascular y de coordinacion.' },
   correr: { title: 'Correr', amount: '30 min', calories: 300, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Gran ejercicio cardiovascular. Quema calorias eficientemente.' },
   caminar: { title: 'Caminata rapida', amount: '30 min', calories: 150, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Ejercicio de bajo impacto ideal para todos los niveles.' },
   bicicleta: { title: 'Bicicleta', amount: '30 min', calories: 250, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise', healthAnalysis: 'Excelente cardio de bajo impacto para piernas y resistencia.' },
