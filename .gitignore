@@ -32,6 +32,10 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+
+# Vercel
+.vercel
 
 # typescript
 *.tsbuildinfo
