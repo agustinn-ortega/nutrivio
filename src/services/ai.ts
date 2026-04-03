@@ -116,7 +116,7 @@ async function callGoogleAI(
     throw new Error('Google AI API key not configured.');
   }
 
-  const model = 'gemini-2.0-flash';
+  const model = 'gemini-2.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const parts: Array<Record<string, unknown>> = [];
