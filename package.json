@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:web": "expo export --platform web && node -e \"const fs=require('fs');const h=fs.readFileSync('dist/index.html','utf8');fs.writeFileSync('dist/index.html',h.replace(' defer></script>',' type=\\\"module\\\"></script>'))\"",
+    "deploy": "npm run build:web && vercel deploy dist --prod --yes --scope ad-forge-ai"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
