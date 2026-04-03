@@ -166,20 +166,23 @@ function parseAIResponse(text: string): AIFoodResult[] {
   const parsed = JSON.parse(cleaned);
   const items: AIFoodResult[] = Array.isArray(parsed) ? parsed : [parsed];
 
-  return items.map((item) => ({
+  return items.map((item) => {
+    const isExercise = item.type === 'exercise';
+    return {
     title: String(item.title || 'Alimento'),
     description: String(item.description || ''),
     amount: String(item.amount || '1 porcion'),
     calories: Math.max(0, Math.round(Number(item.calories) || 0)),
-    type: item.type === 'exercise' ? 'exercise' : 'food',
-    macros: {
+    type: isExercise ? 'exercise' as const : 'food' as const,
+    macros: isExercise ? { carbs: 0, protein: 0, fat: 0 } : {
       carbs: Math.max(0, Math.round(Number(item.macros?.carbs) || 0)),
       protein: Math.max(0, Math.round(Number(item.macros?.protein) || 0)),
       fat: Math.max(0, Math.round(Number(item.macros?.fat) || 0)),
     },
     healthAnalysis: String(item.healthAnalysis || ''),
-    nutritionDetail: item.nutritionDetail || undefined,
-  }));
+    nutritionDetail: isExercise ? undefined : (item.nutritionDetail || undefined),
+  };
+  });
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
