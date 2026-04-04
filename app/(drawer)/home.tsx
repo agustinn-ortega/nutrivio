@@ -25,72 +25,7 @@ import {
 import { getWeekDays, isToday } from '../../src/utils/dates';
 import { quickSuggestions } from '../../src/mock/data';
 import { FoodEntry } from '../../src/types';
-
-/* ------------------------------------------------------------------ */
-/*  AI food lookup map (simulates IA estimation from natural language)  */
-/* ------------------------------------------------------------------ */
-
-interface AiFoodResult {
-  title: string;
-  amount: string;
-  calories: number;
-  macros: { carbs: number; protein: number; fat: number };
-  type: 'food' | 'exercise';
-  healthAnalysis?: string;
-}
-
-const AI_FOOD_DB: Record<string, AiFoodResult> = {
-  pollo: { title: 'Pechuga de pollo a la plancha', amount: '150 g', calories: 248, macros: { carbs: 0, protein: 46, fat: 5 }, type: 'food', healthAnalysis: 'Excelente fuente de proteina magra, ideal para la reparacion muscular.' },
-  carne: { title: 'Carne de res', amount: '100 g', calories: 250, macros: { carbs: 0, protein: 26, fat: 15 }, type: 'food', healthAnalysis: 'Rica en proteina y hierro. Consumir con moderacion por su contenido de grasas saturadas.' },
-  arroz: { title: 'Arroz blanco cocido', amount: '150 g', calories: 195, macros: { carbs: 43, protein: 4, fat: 0 }, type: 'food' },
-  ensalada: { title: 'Ensalada verde mixta', amount: '200 g', calories: 45, macros: { carbs: 8, protein: 3, fat: 0 }, type: 'food' },
-  avena: { title: 'Avena con leche', amount: '200 g', calories: 320, macros: { carbs: 58, protein: 10, fat: 6 }, type: 'food' },
-  huevo: { title: 'Huevo entero', amount: '2 unidades', calories: 155, macros: { carbs: 1, protein: 13, fat: 11 }, type: 'food' },
-  banana: { title: 'Banana', amount: '1 mediana', calories: 105, macros: { carbs: 27, protein: 1, fat: 0 }, type: 'food' },
-  salmon: { title: 'Salmon a la parrilla', amount: '150 g', calories: 280, macros: { carbs: 0, protein: 35, fat: 15 }, type: 'food' },
-  pasta: { title: 'Pasta cocida con salsa', amount: '200 g', calories: 350, macros: { carbs: 62, protein: 12, fat: 5 }, type: 'food' },
-  pan: { title: 'Pan integral', amount: '2 rebanadas', calories: 160, macros: { carbs: 28, protein: 8, fat: 2 }, type: 'food' },
-  cafe: { title: 'Cafe con leche', amount: '250 ml', calories: 70, macros: { carbs: 8, protein: 4, fat: 2 }, type: 'food' },
-  yogur: { title: 'Yogur natural', amount: '200 g', calories: 120, macros: { carbs: 15, protein: 8, fat: 3 }, type: 'food' },
-  manzana: { title: 'Manzana', amount: '1 mediana', calories: 95, macros: { carbs: 25, protein: 0, fat: 0 }, type: 'food' },
-  tostada: { title: 'Tostadas con queso', amount: '2 unidades', calories: 220, macros: { carbs: 24, protein: 10, fat: 9 }, type: 'food' },
-  gimnasio: { title: 'Entrenamiento en gimnasio', amount: '60 min', calories: 350, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise' },
-  correr: { title: 'Correr', amount: '30 min', calories: 300, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise' },
-  caminar: { title: 'Caminata rapida', amount: '30 min', calories: 150, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise' },
-  bicicleta: { title: 'Bicicleta', amount: '30 min', calories: 250, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise' },
-  nadar: { title: 'Natacion', amount: '30 min', calories: 280, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise' },
-  yoga: { title: 'Yoga', amount: '45 min', calories: 180, macros: { carbs: 0, protein: 0, fat: 0 }, type: 'exercise' },
-};
-
-function simulateAiParse(input: string): AiFoodResult[] {
-  const text = input.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const results: AiFoodResult[] = [];
-  const matched = new Set<string>();
-
-  for (const [key, val] of Object.entries(AI_FOOD_DB)) {
-    if (text.includes(key) && !matched.has(key)) {
-      matched.add(key);
-      results.push({ ...val });
-    }
-  }
-
-  if (results.length === 0) {
-    results.push({
-      title: input.trim().charAt(0).toUpperCase() + input.trim().slice(1),
-      amount: '1 porcion',
-      calories: Math.floor(Math.random() * 200 + 150),
-      macros: {
-        carbs: Math.floor(Math.random() * 30 + 10),
-        protein: Math.floor(Math.random() * 20 + 5),
-        fat: Math.floor(Math.random() * 15 + 3),
-      },
-      type: 'food',
-      healthAnalysis: 'Entrada registrada. Conecta con un servicio de IA para obtener datos nutricionales precisos.',
-    });
-  }
-
-  return results;
-}
+import { analyzeText, isAIConfigured } from '../../src/services/ai';
 
 /* ------------------------------------------------------------------ */
 /*  HomeScreen                                                         */
@@ -176,23 +111,22 @@ export default function HomeScreen() {
   );
 
   const handleSend = useCallback(
-    (text: string) => {
+    async (text: string) => {
       const input = text.trim();
       if (!input || isProcessing) return;
 
       setIsProcessing(true);
       setChatText('');
 
-      // Simulate AI processing delay
-      setTimeout(() => {
+      try {
         const now = new Date();
         const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        const results = simulateAiParse(input);
+        const results = await analyzeText(input);
 
         for (const result of results) {
           addEntry({
             title: result.title,
-            description: input,
+            description: result.description || input,
             amount: result.amount,
             calories: result.calories,
             macros: result.macros,
@@ -200,11 +134,14 @@ export default function HomeScreen() {
             date: selectedDate,
             type: result.type,
             healthAnalysis: result.healthAnalysis,
+            nutritionDetail: result.nutritionDetail,
           });
         }
-
+      } catch (error) {
+        console.warn('Error analyzing:', error);
+      } finally {
         setIsProcessing(false);
-      }, 800);
+      }
     },
     [addEntry, selectedDate, isProcessing]
   );
@@ -428,7 +365,7 @@ export default function HomeScreen() {
           {isProcessing && (
             <View style={styles.processingRow}>
               <View style={styles.processingDot} />
-              <Text style={styles.processingText}>Nutrivio esta analizando tu entrada...</Text>
+              <Text style={styles.processingText}>{isAIConfigured() ? 'Nutrivio IA esta analizando...' : 'Estimando con datos locales...'}</Text>
             </View>
           )}
         </View>
