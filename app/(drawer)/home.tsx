@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';
 import {
@@ -33,6 +34,7 @@ import { analyzeText, isAIConfigured } from '../../src/services/ai';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const {
     selectedDate,
     setSelectedDate,
@@ -263,7 +265,7 @@ export default function HomeScreen() {
                 <EntryCard
                   entry={entry}
                   dailyGoalCalories={goals.calories}
-                  onPress={() => {}}
+                  onPress={() => router.push({ pathname: '/(drawer)/entry-detail', params: { id: entry.id } })}
                   onMenuPress={() => handleEntryMenu(entry.id)}
                 />
               </View>
