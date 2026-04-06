@@ -45,7 +45,6 @@ const mainItems: DrawerItem[] = [
 ];
 
 const secondaryItems: DrawerItem[] = [
-  { label: 'Iniciar sesión', icon: 'log-in-outline', route: '/(drawer)/login' },
   { label: 'Código de referencia', icon: 'gift-outline', route: '/(drawer)/referral' },
   { label: 'Términos y privacidad', icon: 'document-text-outline', route: '/(drawer)/terms' },
   { label: 'Soporte', icon: 'help-circle-outline', route: '/(drawer)/support' },
@@ -206,8 +205,20 @@ function DrawerOverlay() {
           </View>
         </ScrollView>
 
-        {/* Footer */}
+        {/* Logout + Footer */}
         <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.logoutBtn}
+            onPress={async () => {
+              setDrawerOpen(false);
+              const { signOut } = require('../../src/services/auth');
+              await signOut();
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="log-out-outline" size={20} color={colors.semantic.error} />
+            <Text style={styles.logoutText}>Cerrar sesion</Text>
+          </TouchableOpacity>
           <Text style={styles.footerText}>Nutrivio v1.0</Text>
         </View>
       </Animated.View>
@@ -344,6 +355,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border.subtle,
     alignItems: 'center',
+    gap: spacing.md,
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  logoutText: {
+    ...typography.captionMedium,
+    color: colors.semantic.error,
   },
   footerText: {
     ...typography.small,
