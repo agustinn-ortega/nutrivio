@@ -106,11 +106,31 @@ Devuelve SOLO el JSON array, sin markdown ni texto extra.`;
 
 // ─── API Calls ───────────────────────────────────────────────────────────────
 
+// Edge function URL (secure, API key stays server-side)
+const EDGE_FN_URL = '/api/analyze';
+
 async function callGoogleAI(
   prompt: string,
   imageBase64?: string,
   imageMimeType?: string
 ): Promise<string> {
+  // Try edge function first (secure, no key exposed)
+  try {
+    const edgeResponse = await fetch(EDGE_FN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, imageBase64, imageMimeType }),
+    });
+
+    if (edgeResponse.ok) {
+      const data = await edgeResponse.json();
+      if (data.text) return data.text;
+    }
+  } catch {
+    // Edge function not available, fall through to direct call
+  }
+
+  // Fallback: direct Gemini call (for local dev or when edge fn unavailable)
   const apiKey = resolveKey();
   if (!apiKey) {
     throw new Error('Google AI API key not configured.');
@@ -123,10 +143,7 @@ async function callGoogleAI(
 
   if (imageBase64 && imageMimeType) {
     parts.push({
-      inlineData: {
-        mimeType: imageMimeType,
-        data: imageBase64,
-      },
+      inlineData: { mimeType: imageMimeType, data: imageBase64 },
     });
   }
 
@@ -137,10 +154,7 @@ async function callGoogleAI(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts }],
-      generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 2048,
-      },
+      generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
     }),
   });
 
