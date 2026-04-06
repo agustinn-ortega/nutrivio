@@ -16,6 +16,19 @@ export async function signUpWithEmail(email: string, password: string, fullName:
   return data;
 }
 
+export async function signInWithGoogle() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: typeof window !== 'undefined'
+        ? `${window.location.origin}/(drawer)/home`
+        : 'https://nutrivio-app.vercel.app/(drawer)/home',
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;

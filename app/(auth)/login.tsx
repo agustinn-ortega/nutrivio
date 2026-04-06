@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../../src/theme';
-import { signInWithEmail, signUpWithEmail } from '../../src/services/auth';
+import { signInWithEmail, signUpWithEmail, signInWithGoogle } from '../../src/services/auth';
 
 type AuthMode = 'login' | 'signup';
 
@@ -190,6 +190,31 @@ export default function LoginScreen() {
               <Text style={styles.buttonText}>Continuar</Text>
             )}
           </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>o</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google Sign In */}
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={() => {
+              setError(null);
+              setLoading(true);
+              signInWithGoogle().catch((err) => {
+                setError(err.message || 'Error al iniciar con Google');
+                setLoading(false);
+              });
+            }}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.googleIcon}>G</Text>
+            <Text style={styles.googleButtonText}>Continuar con Google</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -302,5 +327,39 @@ const styles = StyleSheet.create({
   buttonText: {
     ...typography.bodySemibold,
     color: colors.text.inverse,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border.subtle,
+  },
+  dividerText: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface.base,
+    borderRadius: radius.md,
+    height: 52,
+    borderWidth: 1,
+    borderColor: colors.border.medium,
+    gap: spacing.md,
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  googleButtonText: {
+    ...typography.bodySemibold,
+    color: colors.text.primary,
   },
 });
