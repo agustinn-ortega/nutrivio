@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,6 +11,8 @@ import { supabase } from '../src/services/supabase';
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -24,6 +26,19 @@ export default function RootLayout() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Redirect based on auth state
+  useEffect(() => {
+    if (loading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!session && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (session && inAuthGroup) {
+      router.replace('/(drawer)/home');
+    }
+  }, [session, segments, loading]);
 
   if (loading) {
     return (
@@ -40,13 +55,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={styles.root}>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }}>
-          {session ? (
-            <Stack.Screen name="(drawer)" />
-          ) : (
-            <Stack.Screen name="(auth)" />
-          )}
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );

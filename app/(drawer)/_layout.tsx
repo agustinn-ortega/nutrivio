@@ -13,6 +13,7 @@ import {
 import { Stack, useRouter, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { signOut } from '../../src/services/auth';
 import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';
 
@@ -209,10 +210,9 @@ function DrawerOverlay() {
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.logoutBtn}
-            onPress={async () => {
+            onPress={() => {
               setDrawerOpen(false);
-              const { signOut } = require('../../src/services/auth');
-              await signOut();
+              signOut().catch(console.warn);
             }}
             activeOpacity={0.7}
           >
