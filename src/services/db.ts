@@ -1,7 +1,21 @@
-import { supabase } from './supabase';
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  Timestamp,
+} from 'firebase/firestore';
+import { db, auth } from './firebase';
 
 // ---------------------------------------------------------------------------
-// Local interfaces (match DB schema)
+// Local interfaces (same shape as before)
 // ---------------------------------------------------------------------------
 
 export interface Entry {
@@ -65,17 +79,13 @@ export interface Reminder {
 // ---------------------------------------------------------------------------
 
 function getUserId(): string {
-  // supabase.auth.getUser() is async; we rely on the session which is
-  // synchronously available after login via getSession().
-  const session = (supabase.auth as any).session;
-  if (session?.user?.id) return session.user.id;
-  throw new Error('No authenticated user');
+  const user = auth.currentUser;
+  if (!user) throw new Error('No authenticated user');
+  return user.uid;
 }
 
 async function getUserIdAsync(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) throw new Error('No authenticated user');
-  return data.user.id;
+  return getUserId();
 }
 
 // ---------------------------------------------------------------------------
@@ -84,14 +94,15 @@ async function getUserIdAsync(): Promise<string> {
 
 export async function fetchEntries(date: string): Promise<Entry[]> {
   try {
-    const { data, error } = await supabase
-      .from('entries')
-      .select('*')
-      .eq('entry_date', date)
-      .order('entry_time', { ascending: true });
-
-    if (error) throw error;
-    return (data ?? []) as Entry[];
+    const userId = getUserId();
+    const q = query(
+      collection(db, 'entries'),
+      where('user_id', '==', userId),
+      where('entry_date', '==', date),
+      orderBy('entry_time', 'asc')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Entry));
   } catch (err) {
     console.error('[db] fetchEntries failed:', err);
     throw err;
@@ -100,15 +111,12 @@ export async function fetchEntries(date: string): Promise<Entry[]> {
 
 export async function createEntry(entry: NewEntry): Promise<Entry> {
   try {
-    const userId = await getUserIdAsync();
-    const { data, error } = await supabase
-      .from('entries')
-      .insert({ ...entry, user_id: userId })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Entry;
+    const userId = getUserId();
+    const docRef = await addDoc(collection(db, 'entries'), {
+      ...entry,
+      user_id: userId,
+    });
+    return { id: docRef.id, user_id: userId, ...entry };
   } catch (err) {
     console.error('[db] createEntry failed:', err);
     throw err;
@@ -120,12 +128,7 @@ export async function updateEntry(
   updates: Partial<Entry>,
 ): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('entries')
-      .update(updates)
-      .eq('id', id);
-
-    if (error) throw error;
+    await updateDoc(doc(db, 'entries', id), updates as Record<string, unknown>);
   } catch (err) {
     console.error('[db] updateEntry failed:', err);
     throw err;
@@ -134,9 +137,7 @@ export async function updateEntry(
 
 export async function deleteEntry(id: string): Promise<void> {
   try {
-    const { error } = await supabase.from('entries').delete().eq('id', id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, 'entries', id));
   } catch (err) {
     console.error('[db] deleteEntry failed:', err);
     throw err;
@@ -149,16 +150,10 @@ export async function deleteEntry(id: string): Promise<void> {
 
 export async function fetchProfile(): Promise<Profile | null> {
   try {
-    const userId = await getUserIdAsync();
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (error && error.code === 'PGRST116') return null; // no rows
-    if (error) throw error;
-    return data as Profile;
+    const userId = getUserId();
+    const snap = await getDoc(doc(db, 'profiles', userId));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as Profile;
   } catch (err) {
     console.error('[db] fetchProfile failed:', err);
     throw err;
@@ -169,13 +164,8 @@ export async function updateProfile(
   updates: Partial<Profile>,
 ): Promise<void> {
   try {
-    const userId = await getUserIdAsync();
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ id: userId, ...updates })
-      .eq('id', userId);
-
-    if (error) throw error;
+    const userId = getUserId();
+    await setDoc(doc(db, 'profiles', userId), updates, { merge: true });
   } catch (err) {
     console.error('[db] updateProfile failed:', err);
     throw err;
@@ -188,13 +178,14 @@ export async function updateProfile(
 
 export async function fetchWeightEntries(): Promise<WeightEntry[]> {
   try {
-    const { data, error } = await supabase
-      .from('weight_entries')
-      .select('*')
-      .order('entry_date', { ascending: false });
-
-    if (error) throw error;
-    return (data ?? []) as WeightEntry[];
+    const userId = getUserId();
+    const q = query(
+      collection(db, 'weight_entries'),
+      where('user_id', '==', userId),
+      orderBy('entry_date', 'desc')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as WeightEntry));
   } catch (err) {
     console.error('[db] fetchWeightEntries failed:', err);
     throw err;
@@ -207,15 +198,10 @@ export async function createWeightEntry(
   time: string,
 ): Promise<WeightEntry> {
   try {
-    const userId = await getUserIdAsync();
-    const { data, error } = await supabase
-      .from('weight_entries')
-      .insert({ user_id: userId, weight, entry_date: date, entry_time: time })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as WeightEntry;
+    const userId = getUserId();
+    const data = { user_id: userId, weight, entry_date: date, entry_time: time };
+    const docRef = await addDoc(collection(db, 'weight_entries'), data);
+    return { id: docRef.id, ...data };
   } catch (err) {
     console.error('[db] createWeightEntry failed:', err);
     throw err;
@@ -224,12 +210,7 @@ export async function createWeightEntry(
 
 export async function deleteWeightEntry(id: string): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('weight_entries')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await deleteDoc(doc(db, 'weight_entries', id));
   } catch (err) {
     console.error('[db] deleteWeightEntry failed:', err);
     throw err;
@@ -238,12 +219,8 @@ export async function deleteWeightEntry(id: string): Promise<void> {
 
 export async function updateWeightGoal(target: number): Promise<void> {
   try {
-    const userId = await getUserIdAsync();
-    const { error } = await supabase
-      .from('weight_goals')
-      .upsert({ user_id: userId, target_weight: target });
-
-    if (error) throw error;
+    const userId = getUserId();
+    await setDoc(doc(db, 'weight_goals', userId), { user_id: userId, target_weight: target }, { merge: true });
   } catch (err) {
     console.error('[db] updateWeightGoal failed:', err);
     throw err;
@@ -252,16 +229,10 @@ export async function updateWeightGoal(target: number): Promise<void> {
 
 export async function fetchWeightGoal(): Promise<number | null> {
   try {
-    const userId = await getUserIdAsync();
-    const { data, error } = await supabase
-      .from('weight_goals')
-      .select('target_weight')
-      .eq('user_id', userId)
-      .single();
-
-    if (error && error.code === 'PGRST116') return null;
-    if (error) throw error;
-    return (data as { target_weight: number }).target_weight;
+    const userId = getUserId();
+    const snap = await getDoc(doc(db, 'weight_goals', userId));
+    if (!snap.exists()) return null;
+    return (snap.data() as { target_weight: number }).target_weight;
   } catch (err) {
     console.error('[db] fetchWeightGoal failed:', err);
     throw err;
@@ -274,17 +245,11 @@ export async function fetchWeightGoal(): Promise<number | null> {
 
 export async function fetchWaterLog(date: string): Promise<WaterLog | null> {
   try {
-    const userId = await getUserIdAsync();
-    const { data, error } = await supabase
-      .from('water_logs')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('log_date', date)
-      .single();
-
-    if (error && error.code === 'PGRST116') return null;
-    if (error) throw error;
-    return data as WaterLog;
+    const userId = getUserId();
+    const docId = `${userId}_${date}`;
+    const snap = await getDoc(doc(db, 'water_logs', docId));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as WaterLog;
   } catch (err) {
     console.error('[db] fetchWaterLog failed:', err);
     throw err;
@@ -297,18 +262,14 @@ export async function upsertWaterLog(
   goalMl: number,
 ): Promise<void> {
   try {
-    const userId = await getUserIdAsync();
-    const { error } = await supabase.from('water_logs').upsert(
-      {
-        user_id: userId,
-        log_date: date,
-        amount_ml: amountMl,
-        goal_ml: goalMl,
-      },
-      { onConflict: 'user_id,log_date' },
-    );
-
-    if (error) throw error;
+    const userId = getUserId();
+    const docId = `${userId}_${date}`;
+    await setDoc(doc(db, 'water_logs', docId), {
+      user_id: userId,
+      log_date: date,
+      amount_ml: amountMl,
+      goal_ml: goalMl,
+    }, { merge: true });
   } catch (err) {
     console.error('[db] upsertWaterLog failed:', err);
     throw err;
@@ -321,13 +282,14 @@ export async function upsertWaterLog(
 
 export async function fetchReminders(): Promise<Reminder[]> {
   try {
-    const { data, error } = await supabase
-      .from('reminders')
-      .select('*')
-      .order('reminder_time', { ascending: true });
-
-    if (error) throw error;
-    return (data ?? []) as Reminder[];
+    const userId = getUserId();
+    const q = query(
+      collection(db, 'reminders'),
+      where('user_id', '==', userId),
+      orderBy('reminder_time', 'asc')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Reminder));
   } catch (err) {
     console.error('[db] fetchReminders failed:', err);
     throw err;
@@ -339,12 +301,7 @@ export async function updateReminder(
   updates: { enabled?: boolean; reminder_time?: string },
 ): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('reminders')
-      .update(updates)
-      .eq('id', id);
-
-    if (error) throw error;
+    await updateDoc(doc(db, 'reminders', id), updates as Record<string, unknown>);
   } catch (err) {
     console.error('[db] updateReminder failed:', err);
     throw err;

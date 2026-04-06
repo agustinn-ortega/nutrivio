@@ -1,46 +1,41 @@
-import { supabase } from './supabase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  updateProfile,
+  User,
+} from 'firebase/auth';
+import { auth } from './firebase';
 
 export async function signInWithEmail(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data;
+  const { user } = await signInWithEmailAndPassword(auth, email, password);
+  return { user };
 }
 
 export async function signUpWithEmail(email: string, password: string, fullName: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { full_name: fullName } },
-  });
-  if (error) throw error;
-  return data;
+  const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  await updateProfile(user, { displayName: fullName });
+  return { user };
 }
 
 export async function signInWithGoogle() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: typeof window !== 'undefined'
-        ? window.location.origin
-        : 'https://nutrivio-app.vercel.app',
-    },
-  });
-  if (error) throw error;
-  return data;
+  const provider = new GoogleAuthProvider();
+  const { user } = await signInWithPopup(auth, provider);
+  return { user };
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  await firebaseSignOut(auth);
 }
 
 export async function getSession() {
-  const { data } = await supabase.auth.getSession();
-  return data.session;
+  return auth.currentUser;
 }
 
-export function onAuthStateChange(callback: (session: any) => void) {
-  return supabase.auth.onAuthStateChange((_event, session) => {
-    callback(session);
-  });
+export function onAuthStateChange(callback: (user: User | null) => void) {
+  const unsubscribe = onAuthStateChanged(auth, callback);
+  return { data: { subscription: { unsubscribe } } };
 }

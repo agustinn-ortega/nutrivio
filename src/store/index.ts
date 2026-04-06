@@ -11,7 +11,7 @@ import {
 } from '../types';
 import { mockEntries, defaultReminders } from '../mock/data';
 import { v4 as uuid } from 'uuid';
-import { supabase } from '../services/supabase';
+import { auth } from '../services/firebase';
 import {
   fetchEntries,
   createEntry as dbCreateEntry,
@@ -100,8 +100,8 @@ export const useStore = create<AppState>()(
   // -----------------------------------------------------------------
   syncFromSupabase: async () => {
     try {
-      const { data: userData, error: authError } = await supabase.auth.getUser();
-      if (authError || !userData?.user) {
+      const user = auth.currentUser;
+      if (!user) {
         set({ hasHydrated: true });
         return;
       }

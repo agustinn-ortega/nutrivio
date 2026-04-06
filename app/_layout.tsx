@@ -5,26 +5,22 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '../src/services/supabase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '../src/services/firebase';
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   // Redirect based on auth state
@@ -33,12 +29,12 @@ export default function RootLayout() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (!session && !inAuthGroup) {
+    if (!user && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
+    } else if (user && inAuthGroup) {
       router.replace('/(drawer)/home');
     }
-  }, [session, segments, loading]);
+  }, [user, segments, loading]);
 
   if (loading) {
     return (
