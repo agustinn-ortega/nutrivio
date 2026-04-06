@@ -212,7 +212,7 @@ export default function LoginScreen() {
             disabled={loading}
             activeOpacity={0.8}
           >
-            <Text style={styles.googleIcon}>G</Text>
+            <Ionicons name="logo-google" size={20} color={colors.text.primary} />
             <Text style={styles.googleButtonText}>Continuar con Google</Text>
           </TouchableOpacity>
         </View>
@@ -352,11 +352,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.medium,
     gap: spacing.md,
-  },
-  googleIcon: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text.primary,
   },
   googleButtonText: {
     ...typography.bodySemibold,
