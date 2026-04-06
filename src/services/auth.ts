@@ -21,8 +21,8 @@ export async function signInWithGoogle() {
     provider: 'google',
     options: {
       redirectTo: typeof window !== 'undefined'
-        ? `${window.location.origin}/(drawer)/home`
-        : 'https://nutrivio-app.vercel.app/(drawer)/home',
+        ? window.location.origin
+        : 'https://nutrivio-app.vercel.app',
     },
   });
   if (error) throw error;
