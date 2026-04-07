@@ -51,7 +51,7 @@ export default function GoalsScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.6}>
-          <Ionicons name="chevron-back" size={28} color="#222" />
+          <Ionicons name="chevron-back" size={28} color="#F0F0F5" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Objetivos diarios</Text>
         <View style={s.backBtn} />
@@ -66,14 +66,14 @@ export default function GoalsScreen() {
           onChangeText={update(setCalories)}
           keyboardType="numeric"
           placeholder="2000"
-          placeholderTextColor="#bbb"
+          placeholderTextColor="#5D6175"
           selectionColor="#333"
         />
         <View style={s.divider} />
 
         {/* Link calculadora */}
         <TouchableOpacity style={s.calcLink} activeOpacity={0.6}>
-          <Ionicons name="calculator-outline" size={18} color="#2563EB" />
+          <Ionicons name="calculator-outline" size={18} color="#00D4AA" />
           <Text style={s.calcLinkText}>Usa la calculadora de objetivo diario de calorías</Text>
         </TouchableOpacity>
 
@@ -143,7 +143,7 @@ export default function GoalsScreen() {
 const s = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#0B0D12',
   },
 
   // Header
@@ -154,7 +154,7 @@ const s = StyleSheet.create({
     paddingTop: 56,
     paddingBottom: 16,
     paddingHorizontal: 12,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#0B0D12',
   },
   backBtn: {
     width: 44,
@@ -165,7 +165,7 @@ const s = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#111',
+    color: '#F0F0F5',
     textAlign: 'center',
   },
 
@@ -181,14 +181,14 @@ const s = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#888',
+    color: '#8B8FA3',
     marginTop: 28,
     marginBottom: 4,
   },
   macroLabel: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#888',
+    color: '#8B8FA3',
     marginTop: 24,
     marginBottom: 4,
   },
@@ -197,7 +197,7 @@ const s = StyleSheet.create({
   valueInput: {
     fontSize: 22,
     fontWeight: '400',
-    color: '#111',
+    color: '#F0F0F5',
     paddingVertical: 8,
     paddingHorizontal: 0,
   },
@@ -211,20 +211,20 @@ const s = StyleSheet.create({
     flex: 1,
     fontSize: 22,
     fontWeight: '400',
-    color: '#111',
+    color: '#F0F0F5',
     paddingVertical: 8,
     paddingHorizontal: 0,
   },
   pctSign: {
     fontSize: 18,
     fontWeight: '400',
-    color: '#888',
+    color: '#5D6175',
   },
 
   // Divider
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#D1D1D6',
+    backgroundColor: '#2A2D3A',
     marginTop: 4,
   },
 
@@ -239,21 +239,21 @@ const s = StyleSheet.create({
   calcLinkText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#2563EB',
+    color: '#00D4AA',
   },
 
   // Total warning
   totalWarn: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#E53E3E',
+    color: '#F87171',
     marginTop: 20,
   },
 
   // Save button
   saveBtn: {
     marginTop: 32,
-    backgroundColor: '#2563EB',
+    backgroundColor: '#00D4AA',
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
@@ -261,6 +261,6 @@ const s = StyleSheet.create({
   saveBtnText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFF',
+    color: '#0B0D12',
   },
 });
