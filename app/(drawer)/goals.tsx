@@ -38,7 +38,7 @@ export default function GoalsScreen() {
       fatPercent: parseInt(fatPct, 10) || 25,
     });
     setChanged(false);
-    router.back();
+    router.push('/(drawer)/home');
   }, [calories, carbsPct, proteinPct, fatPct]);
 
   const update = (setter: (v: string) => void) => (v: string) => {
@@ -50,7 +50,7 @@ export default function GoalsScreen() {
     <View style={s.screen}>
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.6}>
+        <TouchableOpacity onPress={() => router.push('/(drawer)/home')} style={s.backBtn} activeOpacity={0.6}>
           <Ionicons name="chevron-back" size={28} color="#F0F0F5" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Objetivos diarios</Text>
