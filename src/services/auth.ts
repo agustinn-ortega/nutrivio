@@ -1,6 +1,7 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   signOut as firebaseSignOut,
@@ -25,10 +26,19 @@ export async function signUpWithEmail(email: string, password: string, fullName:
 }
 
 export async function signInWithGoogle() {
-  await signInWithRedirect(auth, googleProvider);
+  // Try popup first (works on desktop), fall back to redirect (mobile)
+  try {
+    const { user } = await signInWithPopup(auth, googleProvider);
+    return { user };
+  } catch (err: any) {
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+      await signInWithRedirect(auth, googleProvider);
+      return { user: null };
+    }
+    throw err;
+  }
 }
 
-// Call this on app startup to handle the redirect result
 export async function handleGoogleRedirect() {
   try {
     const result = await getRedirectResult(auth);
