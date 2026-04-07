@@ -18,7 +18,7 @@ import { colors, spacing, radius, typography } from '../../src/theme';
 import { useStore } from '../../src/store';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
+const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.75, 320);
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

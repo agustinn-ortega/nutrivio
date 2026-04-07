@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, spacing, radius, typography } from '../../src/theme';
+import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../src/store';
-import { AppHeader } from '../../src/components';
 
 export default function GoalsScreen() {
   const router = useRouter();
@@ -20,276 +19,248 @@ export default function GoalsScreen() {
   const [carbsPct, setCarbsPct] = useState(String(goals.carbsPercent));
   const [proteinPct, setProteinPct] = useState(String(goals.proteinPercent));
   const [fatPct, setFatPct] = useState(String(goals.fatPercent));
+  const [changed, setChanged] = useState(false);
 
   const cal = parseInt(calories, 10) || 0;
   const cp = parseInt(carbsPct, 10) || 0;
   const pp = parseInt(proteinPct, 10) || 0;
   const fp = parseInt(fatPct, 10) || 0;
 
-  const carbsGrams = Math.round((cal * cp) / 400);
-  const proteinGrams = Math.round((cal * pp) / 400);
-  const fatGrams = Math.round((cal * fp) / 900);
+  const carbsG = Math.round((cal * cp) / 400);
+  const proteinG = Math.round((cal * pp) / 400);
+  const fatG = Math.round((cal * fp) / 900);
 
-  useEffect(() => {
-    const c = parseInt(calories, 10);
-    const cb = parseInt(carbsPct, 10);
-    const p = parseInt(proteinPct, 10);
-    const f = parseInt(fatPct, 10);
-    if (c > 0) setGoals({ calories: c });
-    if (cb >= 0 && cb <= 100) setGoals({ carbsPercent: cb });
-    if (p >= 0 && p <= 100) setGoals({ proteinPercent: p });
-    if (f >= 0 && f <= 100) setGoals({ fatPercent: f });
+  const save = useCallback(() => {
+    setGoals({
+      calories: parseInt(calories, 10) || 2000,
+      carbsPercent: parseInt(carbsPct, 10) || 50,
+      proteinPercent: parseInt(proteinPct, 10) || 25,
+      fatPercent: parseInt(fatPct, 10) || 25,
+    });
+    setChanged(false);
+    router.back();
   }, [calories, carbsPct, proteinPct, fatPct]);
 
+  const update = (setter: (v: string) => void) => (v: string) => {
+    setter(v);
+    setChanged(true);
+  };
+
   return (
-    <View style={styles.screen}>
-      <AppHeader
-        title="Objetivos diarios"
-        onBackPress={() => router.back()}
-      />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Calorie Goal */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Objetivo de calorias</Text>
-          <View style={styles.calorieRow}>
-            <TextInput
-              style={styles.calorieInput}
-              value={calories}
-              onChangeText={setCalories}
-              keyboardType="numeric"
-              placeholder="2000"
-              placeholderTextColor={colors.text.tertiary}
-              selectionColor={colors.accent.primary}
-            />
-            <Text style={styles.calorieUnit}>cal</Text>
-          </View>
-          <TouchableOpacity activeOpacity={0.7} style={styles.linkContainer}>
-            <Text style={styles.linkText}>
-              Usa la calculadora de objetivo diario de calorias
-            </Text>
+    <View style={s.screen}>
+      {/* Header */}
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.6}>
+          <Ionicons name="chevron-back" size={28} color="#222" />
+        </TouchableOpacity>
+        <Text style={s.headerTitle}>Objetivos diarios</Text>
+        <View style={s.backBtn} />
+      </View>
+
+      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+        {/* Calorías */}
+        <Text style={s.label}>Calorías</Text>
+        <TextInput
+          style={s.valueInput}
+          value={calories}
+          onChangeText={update(setCalories)}
+          keyboardType="numeric"
+          placeholder="2000"
+          placeholderTextColor="#bbb"
+          selectionColor="#333"
+        />
+        <View style={s.divider} />
+
+        {/* Link calculadora */}
+        <TouchableOpacity style={s.calcLink} activeOpacity={0.6}>
+          <Ionicons name="calculator-outline" size={18} color="#2563EB" />
+          <Text style={s.calcLinkText}>Usa la calculadora de objetivo diario de calorías</Text>
+        </TouchableOpacity>
+
+        {/* Carbohidratos */}
+        <Text style={s.macroLabel}>Carbohidratos {carbsG}g</Text>
+        <View style={s.pctRow}>
+          <TextInput
+            style={s.pctInput}
+            value={carbsPct}
+            onChangeText={update(setCarbsPct)}
+            keyboardType="numeric"
+            selectionColor="#333"
+            maxLength={3}
+          />
+          <Text style={s.pctSign}>%</Text>
+        </View>
+        <View style={s.divider} />
+
+        {/* Proteína */}
+        <Text style={s.macroLabel}>Proteína {proteinG}g</Text>
+        <View style={s.pctRow}>
+          <TextInput
+            style={s.pctInput}
+            value={proteinPct}
+            onChangeText={update(setProteinPct)}
+            keyboardType="numeric"
+            selectionColor="#333"
+            maxLength={3}
+          />
+          <Text style={s.pctSign}>%</Text>
+        </View>
+        <View style={s.divider} />
+
+        {/* Grasa */}
+        <Text style={s.macroLabel}>Grasa {fatG}g</Text>
+        <View style={s.pctRow}>
+          <TextInput
+            style={s.pctInput}
+            value={fatPct}
+            onChangeText={update(setFatPct)}
+            keyboardType="numeric"
+            selectionColor="#333"
+            maxLength={3}
+          />
+          <Text style={s.pctSign}>%</Text>
+        </View>
+        <View style={s.divider} />
+
+        {/* Total warning */}
+        {cp + pp + fp !== 100 && (
+          <Text style={s.totalWarn}>Los porcentajes suman {cp + pp + fp}% (deben sumar 100%)</Text>
+        )}
+
+        {/* Save */}
+        {changed && (
+          <TouchableOpacity style={s.saveBtn} onPress={save} activeOpacity={0.7}>
+            <Text style={s.saveBtnText}>Guardar</Text>
           </TouchableOpacity>
-        </View>
+        )}
 
-        {/* Macro Distribution */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Distribucion de macronutrientes</Text>
-          <Text style={styles.sectionSubtitle}>
-            Ajusta los porcentajes para distribuir tus calorias diarias
-          </Text>
-
-          <MacroRow
-            label="Carbohidratos"
-            color={colors.macro.carbs}
-            bgColor={colors.macro.carbsMuted}
-            percentage={carbsPct}
-            grams={carbsGrams}
-            onChangePercentage={setCarbsPct}
-          />
-          <MacroRow
-            label="Proteina"
-            color={colors.macro.protein}
-            bgColor={colors.macro.proteinMuted}
-            percentage={proteinPct}
-            grams={proteinGrams}
-            onChangePercentage={setProteinPct}
-          />
-          <MacroRow
-            label="Grasa"
-            color={colors.macro.fat}
-            bgColor={colors.macro.fatMuted}
-            percentage={fatPct}
-            grams={fatGrams}
-            onChangePercentage={setFatPct}
-          />
-
-          {/* Total percentage indicator */}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text
-              style={[
-                styles.totalValue,
-                cp + pp + fp !== 100 && styles.totalWarning,
-              ]}
-            >
-              {cp + pp + fp}%
-            </Text>
-            {cp + pp + fp !== 100 && (
-              <Text style={styles.totalHint}>
-                (debe sumar 100%)
-              </Text>
-            )}
-          </View>
-        </View>
+        <View style={{ height: 60 }} />
       </ScrollView>
     </View>
   );
 }
 
-function MacroRow({
-  label,
-  color,
-  bgColor,
-  percentage,
-  grams,
-  onChangePercentage,
-}: {
-  label: string;
-  color: string;
-  bgColor: string;
-  percentage: string;
-  grams: number;
-  onChangePercentage: (v: string) => void;
-}) {
-  return (
-    <View style={styles.macroRow}>
-      <View style={[styles.macroIndicator, { backgroundColor: color }]} />
-      <View style={styles.macroInfo}>
-        <Text style={styles.macroLabel}>{label}</Text>
-        <Text style={[styles.macroGrams, { color }]}>{grams} g</Text>
-      </View>
-      <View style={[styles.macroInputContainer, { backgroundColor: bgColor }]}>
-        <TextInput
-          style={[styles.macroInput, { color }]}
-          value={percentage}
-          onChangeText={onChangePercentage}
-          keyboardType="numeric"
-          selectionColor={color}
-          maxLength={3}
-        />
-        <Text style={[styles.macroPercent, { color }]}>%</Text>
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg.primary,
+    backgroundColor: '#FAFAFA',
   },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 56,
+    paddingBottom: 16,
+    paddingHorizontal: 12,
+    backgroundColor: '#FAFAFA',
+  },
+  backBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#111',
+    textAlign: 'center',
+  },
+
+  // Content
   scroll: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.section,
+    paddingHorizontal: 24,
   },
-  section: {
-    marginTop: spacing.xxl,
-  },
-  sectionTitle: {
-    ...typography.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  sectionSubtitle: {
-    ...typography.caption,
-    color: colors.text.secondary,
-    marginBottom: spacing.lg,
-  },
-  calorieRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface.base,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginTop: spacing.sm,
-  },
-  calorieInput: {
-    ...typography.number,
-    color: colors.accent.primary,
-    flex: 1,
-    padding: 0,
-  },
-  calorieUnit: {
-    ...typography.bodyMedium,
-    color: colors.text.secondary,
-    marginLeft: spacing.sm,
-  },
-  linkContainer: {
-    marginTop: spacing.md,
-  },
-  linkText: {
-    ...typography.caption,
-    color: colors.accent.primary,
-    textDecorationLine: 'underline',
-  },
-  macroRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface.base,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border.subtle,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  macroIndicator: {
-    width: 4,
-    height: 36,
-    borderRadius: 2,
-    marginRight: spacing.md,
-  },
-  macroInfo: {
-    flex: 1,
+
+  // Labels
+  label: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#888',
+    marginTop: 28,
+    marginBottom: 4,
   },
   macroLabel: {
-    ...typography.bodyMedium,
-    color: colors.text.primary,
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#888',
+    marginTop: 24,
+    marginBottom: 4,
   },
-  macroGrams: {
-    ...typography.small,
-    marginTop: spacing.xxs,
+
+  // Value input (calories)
+  valueInput: {
+    fontSize: 22,
+    fontWeight: '400',
+    color: '#111',
+    paddingVertical: 8,
+    paddingHorizontal: 0,
   },
-  macroInputContainer: {
+
+  // Percentage row
+  pctRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    minWidth: 80,
-    justifyContent: 'center',
   },
-  macroInput: {
-    ...typography.numberSmall,
-    padding: 0,
-    minWidth: 36,
-    textAlign: 'right',
+  pctInput: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: '400',
+    color: '#111',
+    paddingVertical: 8,
+    paddingHorizontal: 0,
   },
-  macroPercent: {
-    ...typography.bodyMedium,
-    marginLeft: spacing.xxs,
+  pctSign: {
+    fontSize: 18,
+    fontWeight: '400',
+    color: '#888',
   },
-  totalRow: {
+
+  // Divider
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#D1D1D6',
+    marginTop: 4,
+  },
+
+  // Calculator link
+  calcLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.xs,
+    gap: 8,
+    marginTop: 20,
+    marginBottom: 8,
   },
-  totalLabel: {
-    ...typography.bodySemibold,
-    color: colors.text.secondary,
+  calcLinkText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#2563EB',
   },
-  totalValue: {
-    ...typography.bodySemibold,
-    color: colors.semantic.success,
-    marginLeft: spacing.sm,
+
+  // Total warning
+  totalWarn: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#E53E3E',
+    marginTop: 20,
   },
-  totalWarning: {
-    color: colors.semantic.warning,
+
+  // Save button
+  saveBtn: {
+    marginTop: 32,
+    backgroundColor: '#2563EB',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
   },
-  totalHint: {
-    ...typography.small,
-    color: colors.semantic.warning,
-    marginLeft: spacing.sm,
+  saveBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
   },
 });
