@@ -45,6 +45,8 @@ export default function HomeScreen() {
     deleteEntry,
     setDrawerOpen,
     settings,
+    water,
+    addWater,
   } = useStore();
 
   const [chatText, setChatText] = useState('');
@@ -255,6 +257,42 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+
+        {/* Water Tracker */}
+        {water.enabled && (
+          <View style={styles.waterCard}>
+            <View style={styles.waterHeader}>
+              <Text style={styles.waterTitle}>
+                Agua: {(water.currentMl / 1000).toFixed(1)}L
+              </Text>
+            </View>
+            <View style={styles.waterDivider} />
+            <View style={styles.waterRow}>
+              <TouchableOpacity
+                style={styles.waterBtn}
+                onPress={() => { if (water.currentMl >= 250) addWater(-250); }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="remove" size={20} color={colors.text.secondary} />
+              </TouchableOpacity>
+              <View style={styles.waterCenter}>
+                <Text style={styles.waterCups}>
+                  {Math.round(water.currentMl / 250)} Tazas
+                </Text>
+                <Text style={styles.waterRemaining}>
+                  {Math.max(0, Math.round((water.dailyGoalMl - water.currentMl) / 250))} Tazas Restante
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.waterBtn}
+                onPress={() => addWater(250)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add" size={20} color={colors.accent.primary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Entries or Empty State */}
         {entries.length > 0 ? (
@@ -541,6 +579,55 @@ const styles = StyleSheet.create({
   macroBarFill: {
     height: '100%',
     borderRadius: 2,
+  },
+
+  /* Water card */
+  waterCard: {
+    backgroundColor: colors.surface.base,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    marginTop: spacing.md,
+  },
+  waterHeader: {
+    marginBottom: spacing.md,
+  },
+  waterTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  waterDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border.subtle,
+    marginBottom: spacing.md,
+  },
+  waterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  waterBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waterCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  waterCups: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  waterRemaining: {
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginTop: 2,
   },
 
   /* Entries */
