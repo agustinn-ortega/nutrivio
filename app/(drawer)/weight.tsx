@@ -64,12 +64,12 @@ function WeightChart({
     );
   }
 
-  const W = 340;
-  const H = 200;
-  const PAD_L = 40;
-  const PAD_R = 16;
-  const PAD_T = 16;
-  const PAD_B = 28;
+  const W = 320;
+  const H = 180;
+  const PAD_L = 38;
+  const PAD_R = 30;
+  const PAD_T = 14;
+  const PAD_B = 26;
   const plotW = W - PAD_L - PAD_R;
   const plotH = H - PAD_T - PAD_B;
 
@@ -120,7 +120,7 @@ function WeightChart({
     ? `<polyline points="${points}" fill="none" stroke="${colors.accent.primary}" stroke-width="2" stroke-linejoin="round"/>`
     : '';
   const dots = sorted
-    .map((e, i) => `<circle cx="${toX(i)}" cy="${toY(e.weight)}" r="4" fill="${colors.accent.primary}" stroke="${colors.bg.primary}" stroke-width="2"/>`)
+    .map((e, i) => `<circle cx="${toX(i)}" cy="${toY(e.weight)}" r="5" fill="${colors.accent.primary}" stroke="${colors.bg.primary}" stroke-width="2"/>`)
     .join('');
 
   // Goal line
@@ -129,15 +129,19 @@ function WeightChart({
        <text x="${W - PAD_R + 2}" y="${toY(goalWeight) + 3}" fill="${colors.semantic.success}" font-size="9">Meta</text>`
     : '';
 
-  const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+  const svg = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
     ${gridLines}${yLabelsSvg}${xLabelsSvg}${goalLine}${polyline}${dots}
   </svg>`;
 
   if (Platform.OS === 'web') {
+    // Use a raw div because RN Web View doesn't support dangerouslySetInnerHTML
+    const DivComponent = 'div' as any;
     return (
       <View style={ch.container}>
-        {/* @ts-ignore */}
-        <View style={ch.svgWrap} dangerouslySetInnerHTML={{ __html: svg }} />
+        <DivComponent
+          style={{ width: '100%', height: H }}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
       </View>
     );
   }
@@ -155,8 +159,8 @@ function WeightChart({
 }
 
 const ch = StyleSheet.create({
-  container: { alignItems: 'center', paddingVertical: 8 },
-  svgWrap: { width: 340, height: 200 },
+  container: { width: '100%', paddingVertical: 8 },
+  svgWrap: { width: '100%', height: 180 },
   empty: { height: 140, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 14, color: colors.text.tertiary },
   nativeFallback: { paddingVertical: 12, paddingHorizontal: 8 },
