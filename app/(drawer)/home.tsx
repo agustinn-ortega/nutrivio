@@ -45,9 +45,10 @@ export default function HomeScreen() {
     deleteEntry,
     setDrawerOpen,
     settings,
-    water,
-    addWater,
   } = useStore();
+
+  const water = useStore((s) => s.water);
+  const addWater = useStore((s) => s.addWater);
 
   const [chatText, setChatText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -259,40 +260,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Water Tracker */}
-        {water.enabled && (
-          <View style={styles.waterCard}>
-            <View style={styles.waterHeader}>
-              <Text style={styles.waterTitle}>
-                Agua: {(water.currentMl / 1000).toFixed(1)}L
-              </Text>
-            </View>
-            <View style={styles.waterDivider} />
-            <View style={styles.waterRow}>
-              <TouchableOpacity
-                style={styles.waterBtn}
-                onPress={() => { if (water.currentMl >= 250) addWater(-250); }}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="remove" size={20} color={colors.text.secondary} />
-              </TouchableOpacity>
-              <View style={styles.waterCenter}>
-                <Text style={styles.waterCups}>
-                  {Math.round(water.currentMl / 250)} Tazas
-                </Text>
-                <Text style={styles.waterRemaining}>
-                  {Math.max(0, Math.round((water.dailyGoalMl - water.currentMl) / 250))} Tazas Restante
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.waterBtn}
-                onPress={() => addWater(250)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="add" size={20} color={colors.accent.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        {water.enabled && <WaterWidget />}
 
         {/* Entries or Empty State */}
         {entries.length > 0 ? (
@@ -359,57 +327,51 @@ export default function HomeScreen() {
         </View>
 
         {/* Spacer for bottom bar */}
-        <View style={{ height: 80 }} />
+        <View style={{ height: 16 }} />
       </ScrollView>
 
-      {/* Bottom Input Bar */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-        style={styles.bottomBarWrapper}
-      >
-        <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-          <View style={styles.inputBar}>
-            <TextInput
-              ref={inputRef}
-              style={styles.chatInput}
-              value={chatText}
-              onChangeText={setChatText}
-              placeholder={isProcessing ? 'Analizando...' : 'Que comiste o ejercitaste?'}
-              placeholderTextColor={colors.text.tertiary}
-              editable={!isProcessing}
-              returnKeyType="send"
-              onSubmitEditing={() => handleSend(chatText)}
-              blurOnSubmit={false}
-            />
-            <View style={styles.inputIcons}>
-              <TouchableOpacity activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name="image-outline" size={22} color={colors.text.tertiary} />
+      {/* Bottom Input Bar - in normal flex flow, not absolute */}
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+        <View style={styles.inputBar}>
+          <TextInput
+            ref={inputRef}
+            style={styles.chatInput}
+            value={chatText}
+            onChangeText={setChatText}
+            placeholder={isProcessing ? 'Analizando...' : 'Que comiste o ejercitaste?'}
+            placeholderTextColor={colors.text.tertiary}
+            editable={!isProcessing}
+            returnKeyType="send"
+            onSubmitEditing={() => handleSend(chatText)}
+            blurOnSubmit={false}
+          />
+          <View style={styles.inputIcons}>
+            <TouchableOpacity activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="image-outline" size={22} color={colors.text.tertiary} />
+            </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="camera-outline" size={22} color={colors.text.tertiary} />
+            </TouchableOpacity>
+            {chatText.trim().length > 0 ? (
+              <TouchableOpacity
+                onPress={() => handleSend(chatText)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <View style={styles.sendBtn}>
+                  <Ionicons name="arrow-up" size={18} color={colors.text.inverse} />
+                </View>
               </TouchableOpacity>
-              <TouchableOpacity activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name="camera-outline" size={22} color={colors.text.tertiary} />
-              </TouchableOpacity>
-              {chatText.trim().length > 0 ? (
-                <TouchableOpacity
-                  onPress={() => handleSend(chatText)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <View style={styles.sendBtn}>
-                    <Ionicons name="arrow-up" size={18} color={colors.text.inverse} />
-                  </View>
-                </TouchableOpacity>
-              ) : null}
-            </View>
+            ) : null}
           </View>
-          {isProcessing && (
-            <View style={styles.processingRow}>
-              <View style={styles.processingDot} />
-              <Text style={styles.processingText}>{isAIConfigured() ? 'Nutrivio IA esta analizando...' : 'Estimando con datos locales...'}</Text>
-            </View>
-          )}
         </View>
-      </KeyboardAvoidingView>
+        {isProcessing && (
+          <View style={styles.processingRow}>
+            <View style={styles.processingDot} />
+            <Text style={styles.processingText}>{isAIConfigured() ? 'Nutrivio IA esta analizando...' : 'Estimando con datos locales...'}</Text>
+          </View>
+        )}
+      </View>
 
       {/* Action Sheet */}
       <ActionSheet
@@ -420,6 +382,57 @@ export default function HomeScreen() {
         }}
         items={actionSheetItems}
       />
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  WaterWidget - isolated component with own store subscription       */
+/* ------------------------------------------------------------------ */
+
+function WaterWidget() {
+  const [ml, setMl] = React.useState(() => useStore.getState().water.currentMl);
+  const goalMl = useStore((s) => s.water.dailyGoalMl);
+
+  const cups = Math.round(ml / 250);
+  const remaining = Math.max(0, Math.round((goalMl - ml) / 250));
+  const liters = (ml / 1000).toFixed(1);
+
+  return (
+    <View style={styles.waterCard}>
+      <Text style={styles.waterTitle}>Agua: {liters}L</Text>
+      <View style={styles.waterDivider} />
+      <View style={styles.waterRow}>
+        <TouchableOpacity
+          style={styles.waterBtn}
+          activeOpacity={0.5}
+          onPress={() => {
+            setMl((prev) => {
+              if (prev < 250) return prev;
+              useStore.getState().addWater(-250);
+              return prev - 250;
+            });
+          }}
+        >
+          <Text style={styles.waterBtnIcon}>−</Text>
+        </TouchableOpacity>
+        <View style={styles.waterCenter}>
+          <Text style={styles.waterCups}>{cups} Tazas</Text>
+          <Text style={styles.waterRemaining}>{remaining} Tazas Restante</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.waterBtn}
+          activeOpacity={0.5}
+          onPress={() => {
+            setMl((prev) => {
+              useStore.getState().addWater(250);
+              return prev + 250;
+            });
+          }}
+        >
+          <Text style={styles.waterBtnIconPlus}>+</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -608,12 +621,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   waterBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.surface.elevated,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  waterBtnIcon: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: colors.text.secondary,
+    lineHeight: 24,
+  },
+  waterBtnIconPlus: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: colors.accent.primary,
+    lineHeight: 24,
   },
   waterCenter: {
     flex: 1,
@@ -695,12 +720,6 @@ const styles = StyleSheet.create({
   },
 
   /* Bottom bar */
-  bottomBarWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
   bottomBar: {
     backgroundColor: colors.bg.secondary,
     borderTopWidth: 1,

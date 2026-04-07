@@ -322,11 +322,15 @@ export const useStore = create<AppState>()(
 
   addWater: (ml) => {
     const state = get();
-    const newMl = state.water.currentMl + ml;
-    set((s) => ({
-      water: { ...s.water, currentMl: newMl },
-    }));
-    // Sync to Supabase in background
+    const newMl = Math.max(0, state.water.currentMl + ml);
+    // Create entirely new water object to ensure Zustand detects the change
+    const newWater = {
+      enabled: state.water.enabled,
+      dailyGoalMl: state.water.dailyGoalMl,
+      currentMl: newMl,
+    };
+    set({ water: newWater });
+    // Sync to Firebase in background
     upsertWaterLog(
       state.selectedDate,
       newMl,
