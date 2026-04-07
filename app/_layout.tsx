@@ -7,6 +7,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../src/services/firebase';
+import { handleGoogleRedirect } from '../src/services/auth';
 
 export default function RootLayout() {
   const [user, setUser] = useState<User | null>(null);
@@ -15,12 +16,18 @@ export default function RootLayout() {
   const segments = useSegments();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
+    // Handle Google redirect result first
+    handleGoogleRedirect().then(() => {
+      // Then subscribe to auth state
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        setUser(firebaseUser);
+        setLoading(false);
+      });
+      unsubCleanup = unsubscribe;
     });
 
-    return () => unsubscribe();
+    let unsubCleanup: (() => void) | undefined;
+    return () => unsubCleanup?.();
   }, []);
 
   // Redirect based on auth state

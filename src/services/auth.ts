@@ -1,7 +1,8 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -9,6 +10,8 @@ import {
   User,
 } from 'firebase/auth';
 import { auth } from './firebase';
+
+const googleProvider = new GoogleAuthProvider();
 
 export async function signInWithEmail(email: string, password: string) {
   const { user } = await signInWithEmailAndPassword(auth, email, password);
@@ -22,9 +25,18 @@ export async function signUpWithEmail(email: string, password: string, fullName:
 }
 
 export async function signInWithGoogle() {
-  const provider = new GoogleAuthProvider();
-  const { user } = await signInWithPopup(auth, provider);
-  return { user };
+  await signInWithRedirect(auth, googleProvider);
+}
+
+// Call this on app startup to handle the redirect result
+export async function handleGoogleRedirect() {
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user ?? null;
+  } catch (err) {
+    console.warn('[auth] redirect result error:', err);
+    return null;
+  }
 }
 
 export async function signOut() {
