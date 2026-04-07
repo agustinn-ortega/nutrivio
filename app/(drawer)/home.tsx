@@ -47,8 +47,7 @@ export default function HomeScreen() {
     settings,
   } = useStore();
 
-  const water = useStore((s) => s.water);
-  const addWater = useStore((s) => s.addWater);
+  const waterEnabled = useStore((s) => s.water.enabled);
 
   const [chatText, setChatText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -260,7 +259,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Water Tracker */}
-        {water.enabled && <WaterWidget />}
+        {waterEnabled && <WaterWidget />}
 
         {/* Entries or Empty State */}
         {entries.length > 0 ? (
@@ -391,46 +390,48 @@ export default function HomeScreen() {
 /* ------------------------------------------------------------------ */
 
 function WaterWidget() {
-  const [ml, setMl] = React.useState(() => useStore.getState().water.currentMl);
-  const goalMl = useStore((s) => s.water.dailyGoalMl);
+  // ISOLATION TEST: 100% local state, zero store dependency for render
+  const initWater = React.useRef(useStore.getState().water);
+  const [ml, setMl] = React.useState(initWater.current.currentMl);
+  const goalMl = initWater.current.dailyGoalMl;
 
   const cups = Math.round(ml / 250);
   const remaining = Math.max(0, Math.round((goalMl - ml) / 250));
   const liters = (ml / 1000).toFixed(1);
 
+
   return (
     <View style={styles.waterCard}>
-      <Text style={styles.waterTitle}>Agua: {liters}L</Text>
+      <Text style={styles.waterTitle}>{'Agua: ' + liters + 'L'}</Text>
       <View style={styles.waterDivider} />
       <View style={styles.waterRow}>
         <TouchableOpacity
           style={styles.waterBtn}
           activeOpacity={0.5}
           onPress={() => {
-            setMl((prev) => {
-              if (prev < 250) return prev;
-              useStore.getState().addWater(-250);
-              return prev - 250;
-            });
+            if (ml >= 250) {
+              const next = ml - 250;
+              setMl(next);
+              try { useStore.getState().addWater(-250); } catch(e) { /* persist error */ }
+            }
           }}
         >
-          <Text style={styles.waterBtnIcon}>−</Text>
+          <Text style={styles.waterBtnIcon}>{'−'}</Text>
         </TouchableOpacity>
         <View style={styles.waterCenter}>
-          <Text style={styles.waterCups}>{cups} Tazas</Text>
-          <Text style={styles.waterRemaining}>{remaining} Tazas Restante</Text>
+          <Text style={styles.waterCups}>{cups + ' Tazas'}</Text>
+          <Text style={styles.waterRemaining}>{remaining + ' Tazas Restante'}</Text>
         </View>
         <TouchableOpacity
           style={styles.waterBtn}
           activeOpacity={0.5}
           onPress={() => {
-            setMl((prev) => {
-              useStore.getState().addWater(250);
-              return prev + 250;
-            });
+            const next = ml + 250;
+            setMl(next);
+            try { useStore.getState().addWater(250); } catch(e) { /* persist error */ }
           }}
         >
-          <Text style={styles.waterBtnIconPlus}>+</Text>
+          <Text style={styles.waterBtnIconPlus}>{'+'}</Text>
         </TouchableOpacity>
       </View>
     </View>
